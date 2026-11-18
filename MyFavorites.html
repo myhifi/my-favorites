@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Favorite Sites</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    /* Apply border-box sizing to all elements for easier and predictable layout control.  
+    Prevents padding and borders from increasing element size unexpectedly.  
+    Enhances consistency in responsive designs. */
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 1rem; /*Use relative units like em, rem, or % instead of fixed px where possible*/
+    }
+    .header-container {
+      display: flex;
+      flex-wrap: wrap; /*allows stacking on small screens*/
+      justify-content: space-around;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 { margin: 0; font-size: 1.5em; }
+    .dropdown-group {
+      display: flex;
+      align-items: center;
+      gap: 5px; /* just 1 small space */
+    }
+    header select, header input {
+      padding: 6px;
+      font-size: 1em;
+    }
+    caption {
+      font-weight: bold;
+      color: #ff0000;
+      text-decoration: underline;
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      vertical-align: top;
+      text-align: center; /* center everything */
+    }
+    th {
+      background-color: #f2f2f2;
+      color: #00f;
+    }
+    .site-title {
+      font-size: larger;
+      font-weight: bold;
+      display: block;
+    }
+    .description {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 4px;
+    }
+    a { text-decoration: none; color: #007bff; }
+    #myClockDisplay {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #115;
+    }
+    .category { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <h1><a href="https://myhifi.github.io/AI_Collaboration/" target="_blank">My Favorite Sites</a></h1>
+      <div class="dropdown-group">
+        <label for="categorySelect" style="font-weight:bold;">Show:</label>
+        <select id="categorySelect">
+          <option value="all">All</option>
+        </select>
+      </div>
+      <input type="text" id="searchInput" placeholder="Search sites...">
+    </div>
+  </header>
+
+  <main id="tablesContainer"></main>
+
+  <hr><hr>
+  <div style="margin-bottom: 20px;">
+    <time id="myClockDisplay"></time><br>
+    <label><input type="checkbox" id="clockUpdateCheckbox" checked> Update Every Second</label>
+  </div>
+
+  <div id="prayerBox" style="margin:15px 0; font-weight:bold;">
+    <div id="nextPrayerText">Next Prayer: ...</div>
+    <div id="countdown">⏳ --:--:--</div>
+
+    <button id="detectLocationBtn" style="margin-top:8px;">
+      📍 Detect My City
+    </button>
+  </div>
+
+  <iframe id="iframe" title="prayerWidget"
+    style="height: 358px; border: 1px solid #ddd;" scrolling="no"
+    src="https://www.islamicfinder.org/prayer-widget/360630/shafi/2/0/19.5/17.5">
+  </iframe>
+
+  <noscript>
+    <p style="padding:20px; color:red;">⚠️ JavaScript is disabled. Showing static fallback.</p>
+    <table>
+      <caption>AI Sites</caption>
+      <tr><th>[ Site Name ]</th><th>[ URL ]</th></tr>
+      <tr><td>OpenAI ChatGPT</td><td><a href="https://chatgpt.com/">https://chatgpt.com/</a></td></tr>
+    </table>
+  </noscript>
+
+  <script>
+    // ========== DATA ==========
+    const siteData = {
+      // ===== 1. AI Chatbots & Answer Engines =====
+      "AI Chatbots & Answer Engines": [
+        { title: "🌊 DeepSeek-V3", link: "https://chat.deepseek.com/", description: "Origin Chinese AI chat model" },
+        { title: "🛠️ Google AI Studio", link: "https://aistudio.google.com/", description: "Pro-tier developer interface for Gemini models with massive context windows" },
+        { title: "⭐ Scrimba: learning to code with Interactive Video", link: "https://scrimba.com/explain", description: "Excellent breakdown of why interactive video screencasts make learning to code faster and truly hands-on." },
+        { 
+          title: "🤖 Kimi AI (by Moonshot AI)", 
+          link: "https://kimi.ai/", 
+          description: "[PRIMARY - Agent Swarm] Best-in-class native agent swarm logic. Zero configuration and no API keys required with an incredibly generous free token quota. Exceptional at processing massive codebases, multi-step research tasks, and localized Arabic client communication." 
+        },
+        { 
+          title: "🕸️ Coze (by ByteDance)", 
+          link: "https://www.coze.com/", 
+          description: "[BACKUP / SPECIALIZED] Advanced multi-agent marketplace. 100% free with no API keys needed. Allows deployment of highly structured, specialized developer and automation bots utilizing premium backend architectures like GPT-4o." 
+        },
+        { 
+          title: "📦 OpenManus", 
+          link: "https://github.com/OpenManus/OpenManus", 
+          description: "[OPEN SOURCE - Agent Framework] An open-source, community-driven autonomous agent inspired by Manus. Designed for developers looking to run, tweak, and deploy local task-automation workflows without proprietary restrictions." 
+        },        
+        { title: "❂ OpenAI ChatGPT", link: "https://chatgpt.com/" },
+        { title: "✨ Gemini (Google)", link: "https://gemini.google.com/", description: "Google's conversational AI assistant" },
+        { title: "✴️ Claude AI", link: "https://claude.ai/", description: "Anthropic's AI assistant" },
+        { title: "💎Microsoft Copilot", link: "https://copilot.microsoft.com/", description: "Microsoft's AI productivity assistant" },
+        { title: "𝕏 Grok AI", link: "https://grok.com/", description: "AI assistant designed by xAI to maximize truth and objectivity. It offers real-time search, image generation, trend analysis..." },
+        { title: "⚔️ LMSYS Chatbot Arena", link: "https://lmarena.ai/", description: "A crowdsourced open platform for benchmarking and side-by-side comparison of LLMs using blind A/B testing and an Elo rating system." },
+        { title: "🖐️ Ask5AI: Claude, Gemini, OpenAI, Grok, Deepseek", link: "https://ask5.ai/", description: "compare responses from 5 leading AI models: Claude, Gemini, OpenAI, Grok, Deepseek" },
+        { title: "📚 Encyclopædia Britannica Chatbot", link: "https://www.britannica.com/chatbot", description: "Encyclopædia Britannica AI" },
+        { title: "✶ Perplexity.ai", link: "https://www.perplexity.ai/", description: "free AI-powered answer engine that provides accurate, trusted, and real-time answers to any question." },
+        { title: "☁️ Qwen Chat (by Alibaba)", link: "https://chat.qwen.ai/  ", description: "Alibaba's large language model chat interface (Official portal & API docs: https://qwen.ai/home)" },        
+        { 
+          title: "🚀 Manus AI", 
+          link: "https://manus.im/", 
+          description: "[AUTONOMOUS - General Agent] A pioneering general-purpose AI agent capable of executing complex, multi-step digital workflows, deep browser research, and full-stack task automation end-to-end." 
+        },
+        { title: "🧠 The Gigabrain", link: "https://thegigabrain.com/", description: "Answers sourced from Reddit discussions" },
+      ],
+
+      // ===== 2. AI Tools & Learning Helpers =====
+      "AI Tools & Learning Helpers": [
+        { title: "Glarity AI: Interactive Summarizer for Videos and Web Content", link: "https://askai.glarity.app/",
+        description: "Summarizes and translates content from YouTube videos, Google searches, PDFs, and web pages.<br>It allows users to interact with the content of PDFs and web pages by asking questions and receiving detailed responses, enhancing the learning experience." },
+        { title: "Mathway", link: "https://www.mathway.com/", description: "Solve Algebra, Calculus, Physics, Chemistry and more (Pic Support)" },
+        { title: "Accio", link: "https://www.accio.com/", description: "AI-powered sourcing with global suppliers; backed by industry know-how and accurately matches your requirements" },
+        { title: "Sizzle", link: "https://web.szl.ai/", description: "AI-powered personalized learning & test prep" }
+      ],
+      // ===== 3. Online Learning Platforms =====
+      "Online Learning Platforms": [
+        // الأولوية القصوى: أدوات بناء المشاريع والربح السريع (The Money Stack)
+        { title: "⭐⭐⭐ Next.js Learn", link: "https://nextjs.org/learn", description: "Official interactive tutorial for Next.js - SEO." },
+        { title: "⭐⭐⭐ Full Stack Open (University of Helsinki)", link: "https://fullstackopen.com/en/", description: "Deep dive into modern web development with JavaScript, React, Node.js, and more." },
+        { title: "⭐⭐ Sanity.io Exchange & Guides", link: "https://www.sanity.io/exchange", description: "Practical guides and templates to master Headless CMS and deliver editable sites to clients." },
+
+        // الخبرة العملية وبناء السيرة الذاتية (Portfolio & Experience)
+        { title: "⭐ Forage Software Engineering Virtual Experience", link: "https://www.theforage.com/simulations?careers=software-engineering&companies=jpmorgan.skyscanner.electronic-arts.wells-fargo.walmart", description: "Practice real-world software engineering tasks from top companies.<br>Job Simulations Software Engineering Pre-Apprenticeship" },
+        { title: "The Odin Project paths", link: "https://www.theodinproject.com/paths", description: "Full-stack web development curriculum with hands-on projects." },
+        { title: "Free Code Camp", link: "https://www.freecodecamp.org/", description: "Interactive coding lessons and projects for web development foundations." },
+
+        // الذكاء الاصطناعي (مهارات إضافية لرفع قيمة مشاريعك)
+        { title: "⭐ Kaggle Learn Guide: 5-Day Agents", link: "https://www.kaggle.com/learn-guide/5-day-agents", description: "Learn to build AI agents to integrate into your web apps." },
+        { title: "DeepLearning.AI", link: "https://www.deeplearning.ai/", description: "World-class resources to master artificial intelligence." },
+
+        // مصادر التعلم العامة (عند الحاجة لمهارة محددة)
+        { title: "⭐ Scrimba", link: "https://scrimba.com/", description: "Interactive screencasts and hands-on coding courses for Frontend development, JavaScript, and React." },
+        { title: "Zero To Mastery Courses", link: "https://zerotomastery.io/courses/", description: "Expert-led courses for career skills." },
+        { title: "Udemy", link: "https://www.udemy.com/" },
+        { title: "Edx", link: "https://www.edx.org/" },
+        { title: "Codecademy", link: "https://www.codecademy.com/" },
+        { title: "EduBe.org", link: "https://edube.org/" },
+        { title: "Edraak", link: "https://www.edraak.org/en/" },
+        { title: "Skillsforall (Cisco)", link: "https://skillsforall.com/" },
+
+        // أرشيف (للمراجعة فقط)
+        { title: "CS50 Python", link: "https://cs50.harvard.edu/python/2022/", description: "Intro to Python - useful but secondary to JS for now." }
+      ],
+      
+      // ===== Free Web Templates & UI Components =====
+      "🎨 Free Web Templates & UI Components": [        
+        { 
+          title: "⭐ shadcn/ui", 
+          link: "https://ui.shadcn.com/", 
+          description: "[PRIMARY] The modern developer standard: copy-paste, accessible React components and landing page blocks built with Tailwind CSS and Radix UI.<br>The industry standard for modern React components. Copy-paste high-quality UI instead of building from scratch." 
+        },
+        { 
+          title: "⭐⭐⭐🚀 Vercel Templates", 
+          link: "https://vercel.com/templates", 
+          description: "[PRIMARY] Production-ready full-stack Next.js starters and SaaS boilerplate projects optimized for instant deployment. <br>Market-ready starter kits. Use these to deploy full-stack sites (E-commerce, SaaS, Dashboards) in minutes." 
+        },
+        { 
+          title: "⚡ Cruip", 
+          link: "https://cruip.com/", 
+          description: "High-quality, open-source Tailwind CSS, React, and Next.js landing page templates for SaaS and startups." 
+        },
+        { 
+          title: "🧩 Tailwind Toolbox", 
+          link: "https://www.tailwindtoolbox.com/", 
+          description: "Open-source Tailwind CSS templates, starter kits, and reusable UI components." 
+        },
+        { title: "⭐ Tailwind UI Components", link: "https://tailwindui.com/components", description: "Professional, fully responsive UI components to speed up your workflow." },
+        { 
+          title: "⚡ HTMLrev", 
+          link: "https://htmlrev.com/", 
+          description: "Curated collection of over 1,500 free templates covering Next.js, Tailwind CSS, React, Vue, and HTML." 
+        },
+        { 
+          title: "❤️ One Page Love", 
+          link: "https://onepagelove.com/templates/free", 
+          description: "Curated directory of free single-page templates and modern landing page designs." 
+        },
+        { 
+          title: "🎨 HTML5 UP", 
+          link: "https://html5up.net/", 
+          description: "Lightweight, fully responsive HTML5 and CSS3 website templates, completely free under Creative Commons." 
+        },
+        { 
+          title: "🅱️ Start Bootstrap", 
+          link: "https://startbootstrap.com/", 
+          description: "Free, open-source Bootstrap themes, page layouts, and UI templates under the MIT license." 
+        },
+        { 
+          title: "📝 WordPress Themes", 
+          link: "https://wordpress.com/themes", 
+          description: "Official directory of free and premium WordPress themes for blogs, business sites, and portfolios." 
+        }
+      ],
+
+      // ===== 4. Developer Learning Resources =====
+      "Developer Learning Resources": [
+        { title: "🗺️ roadmap.sh", 
+          link: "https://roadmap.sh/", 
+          description: "Community-driven interactive developer roadmaps, skill trees, and step-by-step learning paths for modern roles (Frontend, Backend, Full Stack, React, Node.js, etc.)." 
+        },        
+        { title: "React Official Docs", link: "https://react.dev/learn", description: "The official documentation for React.js, featuring interactive tutorials and best practices." },
+        { title: "MDN Web Docs - Mozilla developer", link: "https://developer.mozilla.org/", description: "Resources for Developers, by Developers_ Documenting CSS, HTML, and JavaScript; +Learn Getting started" },
+        { title: "W3Schools", link: "https://www.w3schools.com/html/default.asp", description: "Tutorials, exercises, and certifications (HTML, CSS, JS, Python, Excel, etc.)" },
+        { title: "Dev.to: Resource for continuous developer learning and knowledge sharing.", link: "https://dev.to/", description: "Freelance Edge: Community articles to stay updated on industry trends. To share articles, tutorials, and discussions on programming topics." },
+        { title: "Microsoft Learn", link: "https://learn.microsoft.com/en-us/", description: "Learning platform for Microsoft technologies" },
+        { title: "Geeks for Geeks", link: "https://www.geeksforgeeks.org/", description: "All-in-One Learning Portal. It contains well written, well thought and well explained computer science and programming articles" },
+        { title: "Coding Dors", link: "https://www.codingdors.com/python", description: "Supplementary: Python practice and tutorials." },
+      ],
+      // ===== 5. Pre-apprenticeship Cloud & Firebase Tools =====
+      "Pre-apprenticeship Firebase & Google Dev Tools": [
+        { title: "Firebase Docs", link: "https://firebase.google.com/docs", description: "Official Firebase documentation" },
+        { title: "Firebase Authentication", link: "https://firebase.google.com/docs/auth", description: "User authentication guides" },
+        { title: "Google Cloud Console", link: "https://console.cloud.google.com/" },
+        { title: "Google Cloud Docs", link: "https://cloud.google.com/docs" }
+      ],
+      // ===== 6. Developer Tools & References =====
+      "Developer Tools & References": [
+        { title: "🌐 OpenGraph.xyz", link: "https://www.opengraph.xyz/", description: "Preview, test, and audit Open Graph metadata, social share cards, and SEO tags for any URL." },
+        { title: "💻 Arena AI WebDev Leaderboard", link: "https://arena.ai/leaderboard/code/webdev", description: "Crowdsourced Elo rankings comparing top AI models specifically on front-end, React, and full-stack web development tasks." },
+        { title: "Stack Overflow", link: "https://stackoverflow.com/", description: "Developer Q&A community" },
+        { title: "🧜‍♂️ Mermaid Live Editor", link: "https://mermaid.live/", description: "A tool for creating flowcharts and diagrams using code, ideal for documenting projects."},
+        { title: "CS50.dev", link: "https://cs50.dev/", description: "CS50 cloud coding environment" },
+        { title: "manual.cs50.io", link: "https://manual.cs50.io/", description: "Linux manual for CS50" },
+        { title: "Anki decks", link: "https://anki-decks.com/", description: "AI learning platform to create & share flashcards for medschool, science, language learning, and more." },
+      ],
+
+      // ===== 7. Web Utilities & Content Tools =====
+      "Web Utilities & Content Tools": [
+        { title: "Temp Mail", link: "https://temp-mail.org/", description: "Temporary disposable email" },
+        { title: "Riverside Transcription", link: "https://riverside.com/transcription", description: "AI-powered Transcription service for podcasts, interviews, and video recordings (Audio to text)" },
+        { title: "Downsub", link: "https://downsub.com/", description: "Download subtitles (captions) directly from video platforms like YouTube, Viu, Viki, and more. Supports multiple languages and provides subtitle files in formats such as SRT and TXT."
+        },
+        { title: "Credit Card Generator", link: "https://dnschecker.org/credit-card-generator.php" },
+        { title: "QR Code Monkey", link: "https://www.qrcode-monkey.com/#vcard", description: "Free QR code generator supporting URL, text, email, vCard, Location, etc." },
+        { title: "Simple Scraper URL Extractor", link: "https://simplescraper.io/extracturls", description: "Extract URLs quickly from any webpage with ease, no coding needed." },
+        { title: "Typeframes", link: "https://www.typeframes.com/tools", description: "Make videos from text & websites" },
+        { title: "Summarize.tech", link: "https://www.summarize.tech/", description: "AI-powered YouTube video summaries" },
+        { title: "YouTube", link: "https://www.youtube.com/" },
+        { title: "SaveFrom.net", link: "https://en1.savefrom.net/", description: "YouTube Downloader" },
+        { title: "TTSReader", link: "https://ttsreader.com/", description: "Convert text to speech" },
+        { title: "TTSmp3 Text-To-Speech and Text-to-MP3", link: "https://ttsmp3.com/", description: "Text-To-Speech and Text-to-MP3" },
+        { title: "Britannica", link: "https://www.britannica.com/", description: "Encyclopædia Britannica (includes Kids and Scholars & AI Chatbot links)" },
+        { title: "Wikipedia", link: "https://en.wikipedia.org/wiki/", description: "Free online encyclopedia" },
+        { title: "Encyclopedia.com", link: "https://www.encyclopedia.com/", description: "Over 300,000 articles from Oxford University Press, Columbia Encyclopedia, etc." },
+        { title: "Replit", link: "https://replit.com/", description: "Collaborative online IDE" },
+        { title: "Google Docs", link: "https://docs.google.com/document/u/0/", description: "Create and edit documents online" },
+        { title: "Google Sheets", link: "https://docs.google.com/spreadsheets/u/0/", description: "Online spreadsheets for data and analysis" },
+        { title: "Google Sites", link: "https://sites.google.com/u/0/", description: "Build simple websites with ease" },
+        { title: "Wordpress", link: "https://wordpress.com/", description: "Popular platform to create websites and blogs" },
+        { title: "Google Contacts", link: "https://contacts.google.com/", description: "Manage your saved contacts across Google services" },
+        { title: "Google Photos", link: "https://photos.google.com/", description: "Backup, view, and organize your photos" },
+        { title: "Google Maps", link: "https://maps.google.com/", description: "Navigation, directions, and explore nearby places" },
+      ],
+      // ===== 11. Communication & Social Platforms =====
+      "Social Media Sites": [
+        { title: "WhatsApp Web", link: "https://web.whatsapp.com/", description: "Messages and calls"},
+        { title: "WeChat/Weixin", link: "https://web.wechat.com/", description: "Messages and calls"},
+        { title: "Facebook", link: "https://facebook.com/" },
+        { title: "Telegram", link: "https://web.telegram.org/", description: "Cloud-based mobile and desktop messaging app" },
+        { title: "MS Teams", link: "https://teams.live.com/v2/", description: "Microsoft collaboration platform" },
+        { title: "Outlook", link: "https://hotmail.com/", description: "Microsoft email service" },
+      ],
+      // ===== 12. Job & Career Platforms =====
+      "Job & Career Platforms": [
+          { title: "LinkedIn", link: "https://www.linkedin.com/", description: "Professional networking and global job platform" },
+          { title: "Indeed", link: "https://www.indeed.com/", description: "Global job search engine and company listings" },
+          { title: "Glassdoor", link: "https://www.glassdoor.com/", description: "Company reviews, salaries, interviews, and job postings" },
+          { title: "Wuzzuf", link: "https://wuzzuf.net/", description: "Leading recruitment and career platform in Egypt & MENA" },
+          { title: "Bayt.com", link: "https://www.bayt.com/", description: "Middle East job search and recruitment portal" }
+        ],
+      // ===== 8. JavaScript Problem Solving =====
+      "JavaScript problem solving websites": [
+        { title: "Edabit", link: "https://edabit.com/challenges/javascript", description: "JavaScript challenges for practice" },
+        { title: "Hackerrank", link: "https://www.hackerrank.com/", description: "Coding challenges & competitions" },
+        { title: "Leetcode", link: "https://leetcode.com/studyplan/30-days-of-javascript/", description: "30-day JavaScript study plan" },
+        { title: "Blind 75 LeetCode Questions", link: "https://leetcode.com/discuss/general-discussion/460599/blind-75-leetcode-questions", description: "Classic 75 coding problems" },
+        { title: "Frontend Mentor", link: "https://www.frontendmentor.io/", description: "Frontend challenges with real projects" }
+      ],
+      // ===== 9. UI/UX Design Tools =====
+      "UI/UX Design Tools & Platforms": [
+        { 
+          title: "▲ v0.dev (by Vercel)", 
+          link: "https://v0.dev/", 
+          description: "[PRIMARY] AI frontend engineer. Generates production-ready React, TypeScript, and Tailwind CSS components from text prompts or wireframe screenshots." 
+        },
+        { 
+          "title": "Figma", 
+          "link": "https://www.figma.com/", 
+          "description": "[PRIMARY] The industry-standard tool for final interface design, component organization, and professional client handoff." 
+        },
+        { 
+          "title": "Microsoft Designer", 
+          "link": "https://designer.microsoft.com/", 
+          "description": "[PRIMARY] The ultimate free alternative for generating graphic assets, logos, and social media posts with zero watermarks." 
+        },
+        { 
+          "title": "Adobe Express", 
+          "link": "https://www.adobe.com/express/", 
+          "description": "[BACKUP for Designer] A highly capable fallback for AI-powered graphic design and marketing assets if Designer is ever down." 
+        },
+        { 
+          "title": "Google Stitch", 
+          "link": "https://stitch.withgoogle.com/", 
+          "description": "[PRIMARY] AI-native UI builder to instantly prototype application layouts, dashboards, and landing pages from text prompts." 
+        },
+        { 
+          "title": "SuperDesign", 
+          "link": "https://www.superdesign.dev/", 
+          "description": "[BACKUP for Stitch] Open-source AI design agent that lives inside your IDE. Great for generating React components and UI directly from text when coding." 
+        },
+        { 
+          "title": "Penpot", 
+          "link": "https://penpot.app/", 
+          "description": "[BACKUP for Figma] The absolute best open-source alternative to Figma. Uses web standards (SVG/CSS) and has zero paywalls for teams." 
+        }
+      ],
+      "Presentation & Pitch Tools": [
+        { 
+          "title": "Gamma App", 
+          "link": "https://gamma.app/", 
+          "description": "[PAYED] Best-in-class AI presentation engine. Generates stunning narrative slide decks from a single prompt in seconds. (Free tier capped at 400 lifetime credits; includes watermarks)." 
+        },
+        { 
+          "title": "Google Slides", 
+          "link": "https://docs.google.com/presentation/", 
+          "description": "[BACKUP - Standard] Most reliable, completely free platform for assembling traditional presentations with zero watermarks and seamless PowerPoint exports.<br>Create and share presentations" 
+        },
+        { 
+          "title": "Marp", 
+          "link": "https://marp.app/", 
+          "description": "[BACKUP - Open Source] An open-source Markdown ecosystem that transforms plain text code into beautiful slide decks. 100% free with no limits or watermarks." 
+        }
+      ],      
+      "Video Editing & Media Production": [
+        { 
+          title: "🎙️ ElevenLabs", 
+          link: "https://elevenlabs.io/", 
+          description: "[PRIMARY] Leading AI voice generator and text-to-speech platform for ultra-realistic voiceovers, voice cloning, and audio content creation." 
+        },
+        { 
+          title: "🔊 TTSFree.com", 
+          link: "https://ttsfree.com/", 
+          description: "Free online text-to-speech converter supporting natural-sounding voices and multiple languages for instant audio generation." 
+        },
+        { 
+          title: "📖 NaturalReader", 
+          link: "https://www.naturalreaders.com/", 
+          description: "AI text-to-speech reader with high-quality natural voices, supporting audio conversions for documents, PDFs, and web text." 
+        },
+        { 
+          "title": "CapCut", 
+          "link": "https://www.capcut.com/", 
+          "description": "[PRIMARY] Professional video editing tool packed with AI features. Perfect for creating project demo videos and social media content." 
+        },
+        { 
+          "title": "Microsoft Clipchamp", 
+          "link": "https://clipchamp.com/", 
+          "description": "[BACKUP for CapCut] Microsoft's web-based editor. Excellent for quick, watermark-free screen recordings of your web apps. Works perfectly on Windows 10 via browser." 
+        },
+        {
+          "title": "Ezgif",
+          "link": "https://ezgif.com/",
+          "description": "Free, online toolset for editing Animated GIFs, converting videos (MP4, WebM), images to Vidoe, cropping, resizing, and trimming short video clips without software installation."
+        },
+        {
+          "title": "Canva",
+          "link": "https://www.canva.com/",
+          "description": "Online graphic design platform for creating visual assets, presentations, social graphics, and marketing content."
+        },
+        { 
+          "title": "VN Video Editor", 
+          "link": "https://www.vlognow.me/", 
+          "description": "[BACKUP for CapCut] A direct, lightweight desktop alternative to CapCut with zero export watermarks and no hidden paywalls." 
+        },
+        {
+          "title": "PixVerse (Credit-based)",
+          "link": "https://app.pixverse.ai/",
+          "description": "AI-powered video generation tool that converts text prompts and static images into dynamic video clips."
+        },
+        {
+          "title": "Hailuo AI (MiniMax)(Credit-based)",
+          "link": "https://hailuoai.video/",
+          "description": "Generative AI video model developed by MiniMax for producing realistic, high-quality video clips from text and image prompts."
+        }
+      ],
+      // ===== 10. Freelance Marketplaces =====
+      "FreeLancing Marketplaces": [
+        { title: "Mostaql", link: "https://mostaql.com/projects", description: "موقع مستقل (Arabic freelancing platform)" },
+        { title: "Khamsat", link: "https://khamsat.com/", description: "خمسات (Arabic freelancing platform)" },
+        { title: "Upwork", link: "https://www.upwork.com/" },
+        { title: "Fiverr", link: "https://www.fiverr.com/" },
+        { title: "Freelancer", link: "https://www.freelancer.com/" },
+        { title: "PeoplePerHour", link: "https://www.peopleperhour.com/" },
+        { title: "KAF Kafiil", link: "https://kafiil.com/" },
+        { title: "Remotasks", link: "https://www.remotasks.com/en", description: "Earn While doing online tasks from home" },
+        { title: "Guru", link: "https://www.guru.com/" },
+        { title: "TrueLancer", link: "https://www.truelancer.com/" },
+        { title: "Torre.ai", link: "https://torre.ai/", description: "AI-powered freelancing network" },
+        { title: "We Work Remotely", link: "https://weworkremotely.com/", description: "Massive, established, free job board for full-time remote roles." },
+      ],
+      // ===== 12. Portfolio-Building Volunteer Platforms =====
+      "⭐Portfolio-Building Volunteer Platforms⭐": [
+        { 
+          title: "⭐ Catchafire", 
+          link: "https://www.catchafire.org/", 
+          description: "[PRIMARY - Freelance Simulator] A highly structured pro-bono marketplace. You apply and interview for specific project briefs with fixed timelines and clear deliverables. Perfect for practicing client handling and gaining formal testimonials." 
+        },
+        { 
+          title: "⭐ DemocracyLab", 
+          link: "https://www.democracylab.org/", 
+          description: "[PRIMARY - Tech Team Simulator] Focuses heavily on civic tech and open-source applications. It places you into an active project environment, forcing you to use Git/GitHub, participate in team syncs, and write code that passes peer reviews." 
+        },
+        { 
+          title: "🇺🇳 United Nations Online Volunteering (UNV)", 
+          link: "https://www.onlinevolunteering.org/", 
+          description: "[HIGH PRESTIGE] Formal, structured volunteering for global NGOs and UN entities. While the application process can be selective, having a UN agency back your final delivery carries immense weight on a resume or LinkedIn profile." 
+        },
+        { 
+          title: "💻 Code for All (Civic Tech Brigades)", 
+          link: "https://codeforall.org/", 
+          description: "[COLLABORATIVE] A global umbrella network for regional tech groups (like Hack for LA). These operate exactly like software development agencies with Product Managers, UI/UX designers, and developers working together on real apps." 
+        },
+        { 
+          title: "🔍 Idealist", 
+          link: "https://www.idealist.org/", 
+          description: "[BACKUP DATABASE] A massive global nonprofit directory. Use the search filters to isolate 'Remote' opportunities paired with 'Technology' tags to uncover hidden, direct-to-organization development needs." 
+        }
+      ],
+      "🧰 Freelance & Remote Work Hub": [
+        {
+          title: "Freelancers Union",
+          link: "https://freelancersunion.org/",
+          description: "Advocacy, legal contract creators, tax resources, and business guides for independent workers."
+        },
+        {
+          title: "Upwork Resource Center",
+          link: "https://www.upwork.com/resources",
+          description: "Official guides on proposal writing, client communication, pricing strategies, and platform trends."
+        },
+        {
+          title: "Indie Hackers",
+          link: "https://www.indiehackers.com/",
+          description: "Case studies, community discussions, and growth strategies from self-funded developers and solopreneurs."
+        },
+        {
+          title: "Fiverr Learn",
+          link: "https://learn.fiverr.com/",
+          description: "Targeted skill courses on gig optimization, proposal refinement, and freelance business management."
+        },
+        {
+          title: "We Work Remotely Blog",
+          link: "https://weworkremotely.com/blog",
+          description: "Insights on remote work culture, resume formatting for remote roles, and international client trends."
+        }
+      ],      
+      // ===== 13. Language Learning Tools =====
+      "Learn Spoken Languages & tools": [
+        { title: "LinqQ", link: "https://www.lingq.com/en/", description: "Learn Languages from Content You Love" },
+        { title: "BUSUU", link: "https://www.busuu.com/", description: "Compact lessons from the experts and connect with a community of native speakers" },
+        { title: "Duolingo", link: "https://www.duolingo.com/", description: "Free, fun, and effective way to learn a language!" },
+        { title: "MEMRISE", link: "https://www.memrise.com/", description: "Speak a new language with real-world confidence." },
+        { title: "Google Translate", link: "https://translate.google.com/" },
+        { title: "Bing Translator", link: "https://www.bing.com/translator" },
+        { title: "Forvo", link: "https://forvo.com/", description: "The pronunciation dictionary." },
+        { title: "Reverso", link: "https://www.reverso.net/text-translation", description: "Reverso is the all-in-one tool that provides you high-quality translations and helps you improve your language skills seamlessly." }
+      ],
+      // ===== 14. Travel, Tourism & Booking Hub =====
+      "🧳 Travel, Tourism & Booking Hub": [
+        // --- Flight & Accommodation Aggregators ---
+        { 
+          title: "✈️ Skyscanner", 
+          link: "https://www.skyscanner.com/", 
+          description: "Global flight comparison engine for discovering cheap fares, multi-city flights, and hotel/car hire deals." 
+        },
+        { 
+          title: "🏨 Booking.com", 
+          link: "https://www.booking.com/", 
+          description: "World's leading accommodation platform for hotel reservations, holiday rentals, resort bookings, and instant confirmations." 
+        },
+        { 
+          title: "🏡 Airbnb", 
+          link: "https://www.airbnb.com/", 
+          description: "Leading global marketplace for vacation rentals, private apartments, boutique stays, and authentic local experiences." 
+        },
+        { 
+          title: "🧭 TripAdvisor", 
+          link: "https://www.tripadvisor.com/", 
+          description: "Essential traveler reviews platform, hotel ratings, community forums, and destination recommendations." 
+        },
+        { 
+          title: "🟢 Wego Egypt", 
+          link: "https://www.wego.eg/", 
+          description: "Leading MENA region travel search engine for real-time comparisons of flight tickets and hotel deals in local currency." 
+        },
+        { 
+          title: "🧳 Almosafer", 
+          link: "https://www.almosafer.com/", 
+          description: "Top Saudi Arabia and Middle East travel booking platform for flights, luxury hotels, and curated holiday packages." 
+        },
+        { 
+          title: "📍 Google Flights", 
+          link: "https://www.google.com/travel/flights", 
+          description: "Fast, real-time flight search tool featuring interactive price graphs, date grids, and automated fare tracking." 
+        },
+        { title: "Google Travel", link: "https://www.google.com/travel/", description: "Flights, Hotels, Vacation rentals" },
+
+        // --- Global Experiences & Tour Marketplaces ---
+        { 
+          title: "🎫 GetYourGuide", 
+          link: "https://www.getyourguide.com/", 
+          description: "Premier global marketplace for booking local tours, skip-the-line attraction tickets, and VIP travel experiences." 
+        },
+        { 
+          title: "🗺️ Viator", 
+          link: "https://www.viator.com/", 
+          description: "A TripAdvisor company providing access to over 300,000 top-rated day trips, excursions, and private tour guides." 
+        },
+
+        // --- Egypt Inbound & Local Specialists ---
+        { 
+          title: "🏛️ Memphis Tours", 
+          link: "https://www.memphistours.com/", 
+          description: "Established Egyptian inbound tour operator specializing in private tailored itineraries, Nile cruises, and VIP transfers." 
+        },
+        { 
+          title: "🇪🇬 Egypt Tours Portal", 
+          link: "https://www.egypttoursportal.com/", 
+          description: "Leading local travel agency for historical vacations, custom Egypt tour packages, and private chauffeur trips." 
+        },
+
+        // --- Travel Logistics & eSIM Utilities ---
+        { 
+          title: "🚆 Rome2Rio", 
+          link: "https://www.rome2rio.com/", 
+          description: "Global transport route planner showing step-by-step train, bus, ferry, flight, and driving directions anywhere." 
+        },
+        { 
+          title: "📱 Airalo", 
+          link: "https://www.airalo.com/", 
+          description: "Global eSIM marketplace enabling tourists to buy instant local mobile data packages before traveling." 
+        }
+      ],      
+    };
+
+    // ========== RENDER ==========
+    function renderTable(category, sites) {
+      let html = `<div class="category" data-category="${category}">`;
+      html += `<table><caption>${category}</caption>`;
+      html += "<tr><th>[ Site Name ]</th><th>[ URL ]</th></tr>";
+      sites.forEach(site => {
+        html += `<tr><td><span class="site-title">${site.title}</span>`;
+        if (site.description) {
+          html += `<div class="description">${site.description}</div>`;
+        }
+        html += `</td><td><a href="${site.link}" target="_blank" rel="noopener noreferrer">${site.link}</a></td></tr>`;
+      });
+      html += "</table></div>";
+      return html;
+    }
+
+    const container = document.getElementById("tablesContainer");
+    const select = document.getElementById("categorySelect");
+
+    Object.keys(siteData).forEach(category => {
+      select.innerHTML += `<option value="${category}">${category}</option>`;
+      container.innerHTML += renderTable(category, siteData[category]);
+    });
+
+    function showCategory(value) {
+      document.querySelectorAll(".category").forEach(div => {
+        div.style.display = (value === "all" || div.dataset.category === value) ? "block" : "none";
+      });
+    }
+    select.addEventListener("change", () => { showCategory(select.value); applySearch(); });
+    showCategory("all");
+
+    // ========== SEARCH ==========
+    const searchInput = document.getElementById("searchInput");
+    function applySearch() {
+      const term = searchInput.value.toLowerCase();
+      document.querySelectorAll(".category").forEach(div => {
+        if (div.style.display === "none") return;
+        div.querySelectorAll("tr").forEach((row, idx) => {
+          if (idx === 0) return;
+          const text = row.innerText.toLowerCase();
+          row.style.display = text.includes(term) ? "" : "none";
+        });
+      });
+    }
+    searchInput.addEventListener("input", applySearch);
+
+    // ========== CLOCK ==========
+    let clockInterval;
+    function updateClock() {
+      const now = new Date();
+      const optionsDay = { weekday: 'short' };
+      const optionsMonthYear = { month: 'long', year: 'numeric' };
+      const day = now.toLocaleDateString('en-US', optionsDay);
+      const monthYear = now.toLocaleDateString('en-US', optionsMonthYear);
+      const date = now.getDate().toString().padStart(2, '0');
+      const formattedDate = `${day} ${date} ${monthYear}`;
+      const formattedTime = now.toLocaleTimeString('en-US');
+      document.getElementById('myClockDisplay').innerHTML = `${formattedDate} ${formattedTime}`;
+    }
+    function toggleClockUpdate() {
+      const checkbox = document.getElementById('clockUpdateCheckbox');
+      if (checkbox.checked) {
+        clearInterval(clockInterval);
+        updateClock();
+        clockInterval = setInterval(updateClock, 1000);
+      } else {
+        clearInterval(clockInterval);
+      }
+    }
+    updateClock();
+    clockInterval = setInterval(updateClock, 1000);
+    document.getElementById('clockUpdateCheckbox').addEventListener('change', toggleClockUpdate);
+
+    // ========== AlAdhan API for Next Prayer==========
+    let userCity = "Cairo";
+    let userCountry = "Egypt";
+    let prayerInterval;
+
+    // ---------- HELPERS ----------
+    function to12Hour(time24) {
+      let [h, m] = time24.split(":");
+      h = parseInt(h);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      return `${h}:${m} ${ampm}`;
+    }
+
+    function timeToDate(time) {
+      const [h, m] = time.split(":");
+      const d = new Date();
+      d.setHours(h, m, 0, 0);
+      return d;
+    }
+
+    // ---------- FETCH PRAYERS ----------
+    async function fetchPrayerTimes() {
+      const url = `https://api.aladhan.com/v1/timingsByCity?city=${userCity}&country=${userCountry}&method=5`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.data.timings;
+    }
+
+    // ---------- MAIN LOGIC ----------
+    async function updateNextPrayer() {
+      const timings = await fetchPrayerTimes();
+      const now = new Date();
+
+      const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+      let nextPrayerName, nextPrayerTime;
+
+      for (let p of prayers) {
+        const t = timeToDate(timings[p]);
+        if (t > now) {
+          nextPrayerName = p;
+          nextPrayerTime = t;
+          break;
+        }
+      }
+
+      // After Isha → tomorrow Fajr
+      if (!nextPrayerName) {
+        nextPrayerName = "Fajr";
+        nextPrayerTime = timeToDate(timings.Fajr);
+        nextPrayerTime.setDate(nextPrayerTime.getDate() + 1);
+      }
+
+      startCountdown(nextPrayerName, nextPrayerTime, timings);
+    }
+
+    // ---------- COUNTDOWN ----------
+    function startCountdown(name, time, timings) {
+      clearInterval(prayerInterval);
+
+      prayerInterval = setInterval(() => {
+        const now = new Date();
+        const diff = time - now;
+
+        if (diff <= 0) {
+          updateNextPrayer();
+          return;
+        }
+
+        const h = String(Math.floor(diff / 3600000)).padStart(2, "0");
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
+        // const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+
+        document.getElementById("countdown").innerText = `Next Prayer timer ⏳ ${h}:${m}`;
+
+        // 12h format
+        const prayerTime12 = to12Hour(timings[name]);
+
+        const textEl = document.getElementById("nextPrayerText");
+        textEl.innerText = `${userCity} — Next Prayer: ${name} at ${prayerTime12}`;
+
+        // 🔴 Color sync (red if ≤15 min)
+        textEl.style.color = diff <= 15 * 60000 ? "red" : "black";
+      }, 1000);
+    }
+
+    // ---------- GEOLOCATION ----------
+    document.getElementById("detectLocationBtn").addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        const res = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+        );
+        const data = await res.json();
+
+        userCity = data.city || data.locality;
+        userCountry = data.countryName;
+
+        updateNextPrayer();
+      });
+    });
+
+    // ---------- START ----------
+    updateNextPrayer();
+
+  </script>
+</body>
+</html>
